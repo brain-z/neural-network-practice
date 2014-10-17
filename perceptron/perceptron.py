@@ -24,12 +24,12 @@ class Perceptron:
     def __init__(self, input_count, activation_func):
         self._weights = [random_float() for i in range(input_count)]
         self._threshold = abs(random_float())
-        self._learningRate = 0.02
+        self._learningRate = 0.01
         self._activation_func = activation_func
         print("threshold is {}".format(self._threshold))
 
-    def train(self, data, targets, train_times=1000):
-        for i in range(train_times):
+    def train(self, data, targets, max_times=1000):
+        for i in range(max_times):
             print("{} times".format(i))
             error_total = 0
             for inputs, target in zip(data, targets):

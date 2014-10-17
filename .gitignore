@@ -1,0 +1,14 @@
+
+.idea/.name
+
+.idea/dictionaries/Kai.xml
+
+.idea/encodings.xml
+
+.idea/misc.xml
+
+*.xml
+
+.idea/neural-network-practice.iml
+
+perceptron/__pycache__/perceptron.cpython-34.pyc
