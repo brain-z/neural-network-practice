@@ -2,7 +2,8 @@ __author__ = 'Kai'
 
 import random
 import math
-
+import time
+import decimal
 
 class MultilayerPerceptron:
     def __init__(self, sizes, learning_rate, min_error=0.001):
@@ -11,9 +12,9 @@ class MultilayerPerceptron:
         self.min_error = min_error
 
         # 初始化权重
-        self.weights = [[[self._random_val()] * sizes[i + 1] for j in range(sizes[i])] for i in range(len(sizes) - 1)]
+        self.weights = [[[self._random_val() for z in range(sizes[i + 1])]  for j in range(sizes[i])] for i in range(len(sizes) - 1)]
         # 初始化阈值
-        self.thresholds = [[self._random_val()] * sizes[i] for i in range(1, len(sizes))]
+        self.thresholds = [[self._random_val() for j in range(sizes[i])] for i in range(1, len(sizes))]
 
     def train(self, inputs, targets, max_times=100):
         for i in range(max_times):
@@ -83,7 +84,7 @@ class MultilayerPerceptron:
         for i in range(1, n):
             _thresholds = self.thresholds[i - 1]
             _slopes = slopes[i]
-            self.thresholds[i - 1] = [_thresholds[j] + (r * -1 * _slopes[j]) for j in range(self.sizes[i])]
+            self.thresholds[i - 1] = [_thresholds[j] + (r * -1 * _slopes[j]) for j in range(len(_thresholds))]
 
     def _random_val(self):
         val = 2.4 / self.sizes[0]
@@ -99,7 +100,7 @@ class MultilayerPerceptron:
 
 
 obj = MultilayerPerceptron([2, 2, 1], 0.1)
-obj.train([[1, 0], [0, 0], [0, 1], [1, 1]], [[1], [0], [1], [0]], 500)
+obj.train([[1, 0], [0, 0], [0, 1], [1, 1]], [[1], [0], [1], [0]], 50)
 
 # print()
 # print(obj.compute([1, 0]))
