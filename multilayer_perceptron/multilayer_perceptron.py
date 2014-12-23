@@ -50,7 +50,7 @@ class MultilayerPerceptron:
             if i == 0:
                 outputs[i] = input
             else:
-                outputs[i] = self._output(input, self.weights[i - 1], self.thresholds[i - 1])
+                outputs[i] = self._output(outputs[i - 1], self.weights[i - 1], self.thresholds[i - 1])
 
         return outputs
 
