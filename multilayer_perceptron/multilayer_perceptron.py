@@ -10,6 +10,8 @@ class MultilayerPerceptron:
         self.sizes = sizes
         self.learning_rate = learning_rate
         self.min_error = min_error
+        self.converge = False
+        self.learning_times = 0
 
         # 初始化权重
         self.weights = [[[self._random_val() for z in range(sizes[i + 1])]  for j in range(sizes[i])] for i in range(len(sizes) - 1)]
@@ -17,7 +19,9 @@ class MultilayerPerceptron:
         self.thresholds = [[self._random_val() for j in range(sizes[i])] for i in range(1, len(sizes))]
 
     def train(self, inputs, targets, max_times=100):
+        self.converge = False
         for i in range(max_times):
+            self.learning_times = i + 1
             print("No.%s"%(i + 1), "times learning")
             print("=" * 20)
             pass_total = 0
@@ -31,14 +35,14 @@ class MultilayerPerceptron:
                 error_square_sum = self._error_square_sum(sum(errors))
                 print("  input:%s"%inputs[p], "target:%s"%targets[p] , "output:%s"%outputs[-1], "error:%s"%errors, "square sum:%s"%error_square_sum)
                 if error_square_sum <= self.min_error:
-                    ++pass_total
+                    pass_total += 1
                 else:
                     self._update(outputs, errors)
                 print()
 
             if pass_total == len(inputs):
-                print("pass")
-                break
+                self.converge = True
+                return
 
     def compute(self, input):
         return self._compute_outputs(input)[-1]
@@ -69,7 +73,7 @@ class MultilayerPerceptron:
         for i in reversed(range(1, n)):
             if i < n - 1:
                 _weights = self.weights[i]
-                _slopes = [i + 1]
+                _slopes = slopes[i + 1]
                 errors = [sum([_slopes[k] * _weights[j][k] for k in range(self.sizes[i + 1])]) for j in range(self.sizes[i])]
 
             slopes[i] = [y * (1 - y) * e for y, e in zip(outputs[i], errors)]
@@ -99,11 +103,20 @@ class MultilayerPerceptron:
         return e ** 2 + e ** 2
 
 
-obj = MultilayerPerceptron([2, 2, 1], 0.1)
-obj.train([[1, 0], [0, 0], [0, 1], [1, 1]], [[1], [0], [1], [0]], 50)
+network = MultilayerPerceptron([2, 2, 1], 15)
+network.train([[1, 0], [0, 0], [0, 1], [1, 1]], [[1], [0], [1], [0]], 1000)
 
-# print()
-# print(obj.compute([1, 0]))
-# print(obj.compute([0, 0]))
-# print(obj.compute([0, 1]))
-# print(obj.compute([1, 1]))
+print("%s times learning."%network.learning_times)
+print("="*20)
+if network.converge != True:
+    print("  !!!!!!network not converge!!!!!!")
+    print()
+
+print("  thresholds:%s"%network.thresholds)
+print("  weights:%s"%network.weights)
+print()
+print("  XOR[1, 0] ->", round(network.compute([1, 0])[0], 0))
+print("  XOR[0, 0] ->", round(network.compute([0, 0])[0], 0))
+print("  XOR[0, 1] ->", round(network.compute([0, 1])[0], 0))
+print("  XOR[1, 1] ->", round(network.compute([1, 1])[0], 0))
+
