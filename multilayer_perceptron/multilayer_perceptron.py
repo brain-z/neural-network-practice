@@ -4,22 +4,29 @@ import random
 import math
 import time
 import decimal
+import copy
 
 class MultilayerPerceptron:
-    def __init__(self, sizes, learning_rate, min_error=0.001):
+    def __init__(self, sizes, learning_rate, min_error=0.001, constant_factor=0, learning_rate_increase=1.05, learning_rate_decrease=0.9):
         self.sizes = sizes
         self.learning_rate = learning_rate
+        self.learning_rate_increase = learning_rate_increase
+        self.learning_rate_decrease = learning_rate_decrease
         self.min_error = min_error
-        self.converge = False
         self.learning_times = 0
+        self.constant_factor = constant_factor
+        self._weights_log = None
 
         # 初始化权重
         self.weights = [[[self._random_val() for z in range(sizes[i + 1])]  for j in range(sizes[i])] for i in range(len(sizes) - 1)]
+        self._weights_log = [[[0 for z in range(sizes[i + 1])]  for j in range(sizes[i])] for i in range(len(sizes) - 1)]
         # 初始化阈值
         self.thresholds = [[self._random_val() for j in range(sizes[i])] for i in range(1, len(sizes))]
+        self._thresholds_log = [[0 for j in range(sizes[i])] for i in range(1, len(sizes))]
 
     def train(self, inputs, targets, max_times=100):
-        self.converge = False
+        converge = False
+        error_square_sum_log = 0;
         for i in range(max_times):
             self.learning_times = i + 1
             print("No.%s"%(i + 1), "times learning")
@@ -27,22 +34,34 @@ class MultilayerPerceptron:
             pass_total = 0
             for p in range(len(inputs)):
                 print("  No.%s"%(p + 1), "specimen")
+                print("  learning rate:%s"%self.learning_rate)
                 print("  thresholds:%s"%self.thresholds)
                 print("  weigths:%s"%self.weights)
                 outputs = self._compute_outputs(inputs[p])
                 print("  outputs:%s"%outputs)
                 errors = self._compute_errors(targets[p], outputs[-1])
                 error_square_sum = self._error_square_sum(sum(errors))
+
+                if error_square_sum > error_square_sum_log * 1.04:
+                    self.learning_rate -= self.learning_rate * self.learning_rate_decrease
+                else:
+                    self.learning_rate += self.learning_rate * self.learning_rate_increase
+
+                error_square_sum_log = error_square_sum
+
                 print("  input:%s"%inputs[p], "target:%s"%targets[p] , "output:%s"%outputs[-1], "error:%s"%errors, "square sum:%s"%error_square_sum)
                 if error_square_sum <= self.min_error:
                     pass_total += 1
                 else:
                     self._update(outputs, errors)
                 print()
+                self._weights_log = copy.deepcopy(self.weights)
 
             if pass_total == len(inputs):
-                self.converge = True
-                return
+                converge = True
+                break
+
+        return converge
 
     def compute(self, input):
         return self._compute_outputs(input)[-1]
@@ -80,10 +99,11 @@ class MultilayerPerceptron:
 
         r = self.learning_rate
         for i in range(1, n):
+            _weights_log = self._weights_log[i - 1]
             _weights = self.weights[i - 1]
             _input = outputs[i - 1]
             _slopes = slopes[i]
-            self.weights[i - 1] = [[_weights[j][k] + (r * _input[j] * _slopes[k]) for k in range(self.sizes[i])] for j in range(self.sizes[i - 1])]
+            self.weights[i - 1] = [[self.constant_factor * _weights_log[j][k] +  _weights[j][k] + (r * _input[j] * _slopes[k]) for k in range(self.sizes[i])] for j in range(self.sizes[i - 1])]
 
         for i in range(1, n):
             _thresholds = self.thresholds[i - 1]
@@ -101,22 +121,3 @@ class MultilayerPerceptron:
     @staticmethod
     def _error_square_sum(e):
         return e ** 2 + e ** 2
-
-
-network = MultilayerPerceptron([2, 2, 1], 15)
-network.train([[1, 0], [0, 0], [0, 1], [1, 1]], [[1], [0], [1], [0]], 1000)
-
-print("%s times learning."%network.learning_times)
-print("="*20)
-if network.converge != True:
-    print("  !!!!!!network not converge!!!!!!")
-    print()
-
-print("  thresholds:%s"%network.thresholds)
-print("  weights:%s"%network.weights)
-print()
-print("  XOR[1, 0] ->", round(network.compute([1, 0])[0], 0))
-print("  XOR[0, 0] ->", round(network.compute([0, 0])[0], 0))
-print("  XOR[0, 1] ->", round(network.compute([0, 1])[0], 0))
-print("  XOR[1, 1] ->", round(network.compute([1, 1])[0], 0))
-
